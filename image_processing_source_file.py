@@ -28,18 +28,22 @@ def OpenCVRebalanceImage(frame,rfactor,gfactor,bfactor):
 def MidPoint(pt1,pt2):
     return ((pt1[0]+pt2[0])/2.0, (pt1[1]+pt2[1])/2.0)
 
-def OpenCVDisplayedHistogram(image,channel,mask,NumBins,DataMin,DataMax,x,y,w,h,DisplayImage,color,integrationWindow,labelFlag,labelText=""):
+def OpenCVDisplayedHistogram(image,channel,mask,NumBins,DataMin,DataMax,x,y,w,h,DisplayImage,color,integrationWindow,labelFlag,labelText="",fontScale = 0.4):
     x=np.round(x,decimals=0).astype(int)
     y=np.round(y,decimals=0).astype(int)
     w=np.round(w,decimals=0).astype(int)
     h=np.round(h,decimals=0).astype(int)
     avgVal=cv2.meanStdDev(image,mask=mask)
     histdata = cv2.calcHist([image],[channel],mask,[NumBins],[DataMin,DataMax])
-    #domValue=np.argmax(histdata)
-    #domCount=np.max(histdata)/np.sum(histdata) 
-    sortArg=np.argsort(histdata,axis=0)
-    domValue=np.sum(histdata[sortArg[-5:][:,0]][:,0]*sortArg[-5:][:,0])/np.sum(histdata[sortArg[-5:][:,0]][:,0])
-    domCount=np.sum(histdata[sortArg[-5:][:,0]][:,0])/np.sum(histdata)
+    domValue=np.argmax(histdata)
+    pixelCount=np.sum(histdata) 
+    # if pixelCount>0:
+    #     domCount=np.max(histdata)/pixelCount
+    # else:
+    #     domCount=0
+    #sortArg=np.argsort(histdata,axis=0)
+    #domValue=np.sum(histdata[sortArg[-5:][:,0]][:,0]*sortArg[-5:][:,0])/np.sum(histdata[sortArg[-5:][:,0]][:,0])
+    #domCount=np.sum(histdata[sortArg[-5:][:,0]][:,0])/np.sum(histdata)
     #numpixels=sum(np.array(histdata[domValue-integrationWindow:domValue+integrationWindow+1]))
     cv2.normalize(histdata, histdata, 0, h, cv2.NORM_MINMAX)
     if w>NumBins:
@@ -51,7 +55,7 @@ def OpenCVDisplayedHistogram(image,channel,mask,NumBins,DataMin,DataMax,x,y,w,h,
         freq = int(histdata[i])
         cv2.rectangle(DisplayImage, ((i*binWidth)+x, y+h), (((i+1)*binWidth)+x, y+h-freq), color)
     if labelFlag:
-        cv2.putText(DisplayImage,labelText+" m="+'{0:.2f}'.format(domValue/float(NumBins-1)*(DataMax-DataMin))+" p="+'{0:.2f}'.format(domCount)+" a="+'{0:.2f}'.format(avgVal[0][channel][0])+" s="+'{0:.2f}'.format(avgVal[1][channel][0]),(x,y+h+12), font, 0.4,color,1,cv2.LINE_AA)
+        cv2.putText(DisplayImage,labelText+" m="+'{0:.2f}'.format(domValue/float(NumBins-1)*(DataMax-DataMin))+" n="+'{:4d}'.format(int(pixelCount))+" a="+'{0:.2f}'.format(avgVal[0][channel][0])+" s="+'{0:.2f}'.format(avgVal[1][channel][0]),(x,y+h+12), font, fontScale,color,1,cv2.LINE_AA)
     return (avgVal[0][channel][0],avgVal[1][channel][0],domValue/float(NumBins-1)*(DataMax-DataMin))
         
 def OpenCVDisplayedScatter(img, xdata,ydata,x,y,w,h,color, circleThickness,ydataRangemin=None, ydataRangemax=None,xdataRangemin=None, xdataRangemax=None, alpha=1,labelFlag=True):      
